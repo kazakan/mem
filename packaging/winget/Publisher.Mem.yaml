@@ -1,0 +1,8 @@
+# winget version manifest (template). Replace Publisher.Mem / OWNER / sha256 values, or let
+# `wingetcreate new <zip urls>` generate these three files. See RELEASING.md.
+# yaml-language-server: $schema=https://aka.ms/winget-manifest.version.1.6.0.schema.json
+PackageIdentifier: Publisher.Mem
+PackageVersion: 0.0.1
+DefaultLocale: en-US
+ManifestType: version
+ManifestVersion: 1.6.0

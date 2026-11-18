@@ -1,0 +1,7 @@
+/target
+# a store or model next to the sources (from running mem inside this repo)
+/.mem/
+/.bin/
+*.gguf
+calls.log
+/dist/
