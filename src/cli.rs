@@ -153,7 +153,7 @@ pub(crate) const VALUE_OPTS: &[&str] = &[
     "--append",
 ];
 
-/// The argparse rule the Python reference follows: after an option that takes a value, a token that looks like
+/// The argparse rule (kept from the Python original): after an option that takes a value, a token that looks like
 /// an option is an error (starts with '-', longer than 1, not a negative number, no space). Values such as
 /// "- bullet text" are fine. Returns the error message, or None.
 pub(crate) fn argparse_violation(argv: &[String]) -> Option<String> {

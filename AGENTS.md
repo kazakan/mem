@@ -11,9 +11,9 @@ predictable**. Read in this order before changing anything:
 ## Ground rules
 
 - No network code, no server, no background process. One command = one short process.
-- Output text is an interface: agents act on its wording. Any output change must be intended, reflected in
-  `reference/mem53.py` (or recorded as a deliberate difference) and in `tests/fixtures/golden.json`
-  (`python3 scripts/regen_golden.py`), and recorded in `docs/DECISIONS.md`.
+- Output text is an interface: agents act on its wording. Any output change must be intended: re-bless the
+  snapshot (`MEM_BLESS=1 cargo test --release --test golden`), review the diff of `tests/fixtures/golden.json`,
+  and record why in `docs/DECISIONS.md`.
 - Keep the keyword build small and fast; anything heavy goes behind a cargo feature like `embed`.
 - Korean and English are first-class; language rules live in `src/text.rs`. Other languages: add switchable rules.
 - Never delete notes; status changes only (superseded / retired).

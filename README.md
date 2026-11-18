@@ -8,7 +8,7 @@ AI 에이전트들이 세션을 넘어 공유하는 **프로젝트 메모리**. 
 - 같은 주제의 메모가 둘 이상 "현재"로 남지 않게 저장 단계에서 막고(supersede / keep-both), 비슷한 메모는 검색 결과에서 한 묶음으로 접습니다.
 - 에이전트용 사용법은 [SKILL.md](SKILL.md), 설계와 결정 기록은 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), [docs/DECISIONS.md](docs/DECISIONS.md).
 
-버전 0.0.1. Python 참조 구현 `mem` v5.3([reference/mem53.py](reference/mem53.py))과 키워드 검색 경로의 출력이 바이트 단위로 같습니다.
+버전 0.0.1. Python 으로 만든 `mem` v5.3 을 Rust 로 옮긴 것으로, 키워드 검색 경로의 출력이 v5.3 과 바이트 단위로 같음을 확인한 뒤 Python 판은 정리했습니다(D-22).
 
 ## 설치
 
@@ -292,7 +292,8 @@ version: 0.0.1 (keyword-only build)
 ```sh
 cargo fmt --check
 cargo clippy --release --all-targets -- -D warnings
-cargo test --release                       # 단위 + CLI 통합 + golden(Python 참조와 바이트 비교)
+cargo test --release                       # 단위 + CLI 통합 + golden(출력 스냅샷 145건)
+MEM_BLESS=1 cargo test --release --test golden   # 출력을 의도적으로 바꾼 뒤 스냅샷 갱신 (diff 확인 후 커밋)
 MEM_TEST_MODEL=/path/embeddinggemma-300M-Q8_0.gguf cargo test --release --features embed
 ```
 

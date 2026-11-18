@@ -2,7 +2,7 @@
 
 Why mem is built the way it is. One entry per decision: context, decision, consequences. "Owner" = the person who
 commissioned mem; entries marked *owner decision* were made by them and should not be reversed without asking.
-Add new entries at the end (D-22, …); when a decision is replaced, mark the old one `superseded by D-xx` instead
+Add new entries at the end (D-23, …); when a decision is replaced, mark the old one `superseded by D-xx` instead
 of deleting it — the same rule mem applies to its own notes.
 
 Status: **accepted** (in the code), **proposed** (agreed problem, fix not chosen), **superseded**.
@@ -127,9 +127,9 @@ batches unreliable.
 new / duplicate / same subject (must decide) / similar. In save mode a malformed line is reported and skipped;
 the rest continue.
 
-## D-12 Rust port, byte-identical to the Python reference on the keyword path — accepted
+## D-12 Rust port, byte-identical to the Python reference on the keyword path — accepted (spec role ended by D-22)
 
-**Context.** The reference implementation is Python (`reference/mem53.py`, v5.3). Startup and search time
+**Context.** The reference implementation is Python (`reference/mem53.py`, v5.3; removed by D-22). Startup and search time
 mattered for a tool called many times per session (5k notes: Python 58–75 ms per search; Rust 8–10 ms).
 
 **Decision.** Port to Rust and keep output identical byte for byte on the keyword path, verified by golden tests
@@ -139,8 +139,7 @@ where output depends on them (`pystr.rs`). Deliberate differences:
 - inputs that crash Python give one-line errors or continue: a bad add-batch line, a closed pipe, a broken model
   file; `supersedes` in add-batch may also be a JSON list.
 
-**Consequences.** The Python file is the spec for behavior changes: change both or record why not
-(`scripts/regen_golden.py` refreshes the expected outputs).
+**Consequences.** Until D-22 the Python file was the spec for behavior changes (D-20 and D-21 were made in both).
 
 ## D-13 Embed build: llama.cpp from source, static, portable to older glibc — accepted
 
@@ -270,3 +269,20 @@ agree on the write replays and 1,800 fuzz cases.
 subject; relaxing to subset matching was discussed and not adopted, because it would also hold sibling notes such
 as "Cart worker count" and "Cart worker count limit". Words with no registered synonym (질문 / questions) stay
 different until an agent adds them.
+
+## D-22 Rust only: the Python reference is removed — accepted, *owner decision*
+
+**Context.** The Python v5.3 implementation was kept in `reference/` as the behavioral spec: golden outputs came
+from it and every behavior change had to be made twice (D-20 and D-21 were). The port's equivalence was already
+established (145 golden cases, 1,358 replayed real writes, 1,800 fuzz cases, identical final databases), and the
+project continues in Rust only.
+
+**Decision.** Remove `reference/` (mem53.py, the tested skill text) and `scripts/regen_golden.py`. The last tree
+containing them is the first git commit of the repository. `tests/fixtures/golden.json` stays as an output
+snapshot of the verified behavior; after an intended output change it is re-generated from the Rust build with
+`MEM_BLESS=1 cargo test --release --test golden`, and the diff is reviewed like code.
+
+**Consequences.** There is no independent oracle any more: the snapshot catches unintended changes, but whether
+a change is right is judged from its diff and a decision entry. Stores written by the Python version open
+unchanged (same schema). Code comments that cite Python behavior (string slicing, argparse, KeyError text)
+explain where the output format came from; they are not a requirement to keep Python around.

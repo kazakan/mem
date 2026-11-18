@@ -357,7 +357,7 @@ mod tests {
     }
 
     /// Known issue (docs/DECISIONS.md, D-14): one-letter words and two-syllable words whose last syllable looks
-    /// like a josa are dropped. Kept as-is for compatibility with the Python reference until the fix lands.
+    /// like a josa are dropped. Kept as-is (the output snapshot depends on it) until a fix is chosen.
     #[test]
     fn known_issue_short_words_are_dropped() {
         assert!(tokens("찜").is_empty());

@@ -1,5 +1,5 @@
 //! Python string semantics the output format depends on (code-point slicing, str.split/strip/splitlines, int compare).
-//! The Python reference (`reference/mem53.py`) defines the output; these keep Rust byte-identical to it.
+//! mem began as Python (v5.3); the output format was verified byte-identical to it and is kept (D-12, D-22).
 
 use crate::prelude::*;
 

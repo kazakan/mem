@@ -496,6 +496,7 @@ dependencies = [
  "llama-cpp-sys-2",
  "regex",
  "rusqlite",
+ "serde",
  "serde_json",
  "sqlite-vec",
 ]

@@ -153,21 +153,23 @@ decide whether to write are repeated inside the transaction. The integration tes
 - Building: llama.cpp is compiled with the CPU flags of `-C target-cpu`; without one it targets baseline x86-64
   (SSE2) and is several times slower. `build.rs` links `shim/glibc_compat.c` on linux-gnu so binaries built on
   newer glibc run on 2.35 (C23 `__isoc23_*` names, `arc4random`).
-- Vectors are close to, not bit-identical with, the Python reference's (llama-cpp-python); they become identical
+- Vectors are close to, not bit-identical with, the Python original's (llama-cpp-python); they become identical
   when this crate is patched to the llama.cpp revision that llama-cpp-python 0.3.36 vendors (verified on the
   owner's PC). Search rankings were the same in those tests.
 
-## 10. Compatibility with the Python reference (`pystr.rs`, D-10)
+## 10. Output format inherited from the Python original (`pystr.rs`, D-12, D-22)
 
-`reference/mem53.py` is the behavioral spec. On the keyword path the Rust output is byte-identical, so string
-handling copies Python semantics where output depends on it: slicing by code points (`cut`, `cut_py`, `py_end`
+mem started as a Python program (v5.3). The Rust port was verified byte-identical to it on the keyword path, then
+the Python code was removed (D-22); `tests/fixtures/golden.json` keeps that verified output as the snapshot. The
+output format still follows Python semantics where it depends on them: slicing by code points (`cut`, `cut_py`, `py_end`
 for negative/oversized ends), `str.strip`/`split`/`splitlines` whitespace sets, `repr(float)` in the call log,
 argparse prefix matching and its rule that a value may not look like an option (`cli::argparse_violation`).
 Deliberate differences (D-12): ties in `list` grouping go to the earliest group (Python's choice depends on the
 hash seed), and error cases that crash Python (bad JSON line, broken pipe, broken model) produce one-line errors
 or continue.
 
-When behavior should change, change it here and in the golden file together, and record a decision.
+When output should change, change the code, re-bless the snapshot (`MEM_BLESS=1 cargo test --release --test golden`),
+review its diff, and record a decision.
 
 ## 11. Rust module map
 
@@ -194,20 +196,20 @@ Shared names come in through `crate::prelude` (std, rusqlite, regex, clap, index
 
 | Layer | Where | What it guards |
 |---|---|---|
-| Unit (35) | `#[cfg(test)]` in each module | tokens/josa/shape/subject rules, Python string semantics, schema+migration, ranking, grouping, pins, write checks |
+| Unit (35) | `#[cfg(test)]` in each module | tokens/josa/shape/subject rules, Python-style string semantics, schema+migration, ranking, grouping, pins, write checks |
 | CLI integration (18) | `tests/cli.rs` | every command end to end through the binary, argument errors, store discovery, call log, concurrent writers |
-| Golden (145 cases) | `tests/golden.rs` + `tests/fixtures/{shoplite.db,golden.json}` | byte-identical output to the Python reference on a 577-note store (search variants, get, brief, syn, list) |
+| Golden snapshot (145 cases) | `tests/golden.rs` + `tests/fixtures/{shoplite.db,golden.json}` | exact output on a 577-note store (search variants, get, brief, syn, list); first produced by the Python original |
 | Embeddings (3) | `tests/embed.rs`, `--features embed`, `MEM_TEST_MODEL=<gguf>` | index, semantic hit for a paraphrase, vector written on add, broken/missing model fallback |
-| Differential (outside the repo) | Python harness used during the port | 1,358 replayed real agent writes and 1,800 fuzz cases compared with the Python reference; final databases identical |
+| Differential (done, outside the repo) | Python harness used during the port | 1,358 replayed real agent writes and 1,800 fuzz cases compared with the Python original; final databases identical |
 
 `cargo test --release` runs the first three (the embed tests skip without the feature or the model). With a model,
 build the embed tests with `RUSTFLAGS="-C target-cpu=native"`, otherwise indexing the fixture takes ~13 minutes.
-`scripts/regen_golden.py` re-runs the Python reference (`reference/mem53.py`, plain Python 3 on the keyword path)
-on the same cases — only when an output change is intended and recorded in DECISIONS.md.
+After an intended output change, `MEM_BLESS=1 cargo test --release --test golden` rewrites the snapshot from the
+current build; review `git diff tests/fixtures/golden.json` and record the change in DECISIONS.md.
 
 ## 13. Performance (measured during the port)
 
-| Case | Python reference | Rust |
+| Case | Python original | Rust |
 |---|---|---|
 | search, 5k notes, keyword (container) | 58 ms | 8.2 ms |
 | search, 5k notes, keyword (owner's PC, 2 vCPU VM) | 75 ms | 9.5 ms |

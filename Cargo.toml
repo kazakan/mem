@@ -27,6 +27,9 @@ llama-cpp-2 = { version = "0.1.161", default-features = false, features = ["stat
 llama-cpp-sys-2 = { version = "0.1.161", default-features = false, features = ["static-stdcxx"], optional = true }
 sqlite-vec = { version = "0.1.9", optional = true }
 
+[dev-dependencies]
+serde = "1"   # golden snapshot writer (MEM_BLESS=1)
+
 [build-dependencies]
 cc = "1"
 

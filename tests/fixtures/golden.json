@@ -1,5 +1,5 @@
 {
- "about": "Expected output of the Python reference (reference/mem53.py, MEM_NO_EMBED=1) on tests/fixtures/shoplite.db. The Rust build must match byte for byte. Regenerate only when the reference changes on purpose.",
+ "about": "Expected output of real agent queries on tests/fixtures/shoplite.db (keyword search, MEM_NO_EMBED=1). First produced by the Python original (mem v5.3), which the Rust port matched byte for byte; now the output of the last intended change. Update with MEM_BLESS=1 cargo test --release --test golden (see tests/golden.rs).",
  "cases": [
   {
    "args": [
