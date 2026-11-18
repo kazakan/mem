@@ -1,0 +1,157 @@
+# Push a tag like v0.0.1 (matching Cargo.toml) to build every target, attach the archives and SHA256SUMS
+# to a GitHub release, and (once the package exists in winget-pkgs and WINGET_TOKEN is set) open the winget
+# update PR. See RELEASING.md.
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "existing tag to (re)build, e.g. v0.0.1"
+        required: true
+
+permissions:
+  contents: write
+
+env:
+  CARGO_TERM_COLOR: always
+  TAG: ${{ github.event.inputs.tag || github.ref_name }}
+
+jobs:
+  check-version:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
+      - name: tag matches Cargo.toml
+        shell: bash
+        run: |
+          v=$(grep -m1 '^version' Cargo.toml | cut -d'"' -f2)
+          [ "v$v" = "$TAG" ] || { echo "tag $TAG != Cargo.toml version $v"; exit 1; }
+
+  build:
+    needs: check-version
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { target: x86_64-pc-windows-msvc,    os: windows-latest, ext: zip }
+          - { target: aarch64-pc-windows-msvc,   os: windows-latest, ext: zip }
+          - { target: x86_64-unknown-linux-musl, os: ubuntu-latest,  ext: tar.gz }
+          - { target: x86_64-apple-darwin,       os: macos-latest,   ext: tar.gz }
+          - { target: aarch64-apple-darwin,      os: macos-latest,   ext: tar.gz }
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+      - if: contains(matrix.target, 'musl')
+        run: sudo apt-get update && sudo apt-get install -y musl-tools
+      - run: cargo build --release --locked --target ${{ matrix.target }}
+      - name: package
+        shell: bash
+        run: |
+          name=mem-${TAG#v}-${{ matrix.target }}
+          mkdir -p dist/$name
+          bin=target/${{ matrix.target }}/release/mem; [ -f $bin.exe ] && bin=$bin.exe
+          cp $bin README.md SKILL.md CHANGELOG.md dist/$name/
+          [ -f LICENSE ] && cp LICENSE dist/$name/ || true
+          cd dist/$name
+          if [ "${{ matrix.ext }}" = zip ]; then 7z a ../$name.zip ./* > /dev/null; else tar czf ../$name.tar.gz ./*; fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mem-${{ matrix.target }}
+          path: dist/*.${{ matrix.ext }}
+
+  # Optional builds with --features embed (EmbeddingGemma through llama.cpp). The model is not shipped:
+  # users put model.gguf next to the store or set MEM_MODEL. A failure here does not block the release.
+  build-embed:
+    needs: check-version
+    continue-on-error: true
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # glibc 2.35 baseline; AVX2-class CPUs (x86-64-v3)
+          - { target: x86_64-unknown-linux-gnu, os: ubuntu-22.04,   ext: tar.gz, cpu: x86-64-v3 }
+          - { target: x86_64-pc-windows-msvc,   os: windows-latest, ext: zip,    cpu: x86-64-v3 }
+          - { target: aarch64-apple-darwin,     os: macos-latest,   ext: tar.gz, cpu: "" }
+    runs-on: ${{ matrix.os }}
+    env:
+      LLAMA_STATIC_CRT: "1"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+      - if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y cmake clang
+      - name: build
+        shell: bash
+        run: |
+          if [ -n "${{ matrix.cpu }}" ]; then
+            # keep the Windows crt-static flag from .cargo/config.toml (RUSTFLAGS would replace it)
+            if [ "${{ runner.os }}" = Windows ]; then export RUSTFLAGS="-C target-cpu=${{ matrix.cpu }} -C target-feature=+crt-static";
+            else export RUSTFLAGS="-C target-cpu=${{ matrix.cpu }}"; fi
+          fi
+          cargo build --release --locked --features embed --target ${{ matrix.target }}
+      - name: package
+        shell: bash
+        run: |
+          name=mem-embed-${TAG#v}-${{ matrix.target }}
+          mkdir -p dist/$name
+          bin=target/${{ matrix.target }}/release/mem; [ -f $bin.exe ] && bin=$bin.exe
+          cp $bin README.md SKILL.md CHANGELOG.md dist/$name/
+          [ -f LICENSE ] && cp LICENSE dist/$name/ || true
+          cd dist/$name
+          if [ "${{ matrix.ext }}" = zip ]; then 7z a ../$name.zip ./* > /dev/null; else tar czf ../$name.tar.gz ./*; fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mem-embed-${{ matrix.target }}
+          path: dist/*.${{ matrix.ext }}
+
+  release:
+    needs: [build, build-embed]
+    if: ${{ !cancelled() && needs.build.result == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - run: cd dist && sha256sum * > SHA256SUMS && cat SHA256SUMS
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.TAG }}
+          name: mem ${{ env.TAG }}
+          files: dist/*
+          # 0.x releases are marked pre-release; winget still accepts them
+          prerelease: ${{ startsWith(env.TAG, 'v0.') }}
+          generate_release_notes: true
+
+  # Updates the winget manifest (PR to microsoft/winget-pkgs). Works only after the first version was
+  # submitted by hand (RELEASING.md) and the WINGET_TOKEN secret (classic PAT, public_repo) is set.
+  winget:
+    needs: release
+    runs-on: windows-latest
+    env:
+      WINGET_TOKEN: ${{ secrets.WINGET_TOKEN }}
+      WINGET_ID: ${{ vars.WINGET_ID }}
+    steps:
+      - if: env.WINGET_TOKEN != '' && env.WINGET_ID != ''
+        uses: vedantmgoyal9/winget-releaser@main
+        with:
+          identifier: ${{ env.WINGET_ID }}
+          release-tag: ${{ env.TAG }}
+          installers-regex: '^mem-[0-9.]+-(x86_64|aarch64)-pc-windows-msvc\.zip$'
+          token: ${{ env.WINGET_TOKEN }}
+      - if: env.WINGET_TOKEN == '' || env.WINGET_ID == ''
+        run: echo "winget step skipped (set secret WINGET_TOKEN and variable WINGET_ID, see RELEASING.md)"
