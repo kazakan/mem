@@ -4,6 +4,7 @@
 
 - Fix: after `import`, `add` could fail on every try with `UNIQUE constraint failed: memory.id` when an imported
   note already had the next id; the new id now skips numbers in use (D-23).
+- README.md is now in English (D-24).
 
 ## 0.0.1 — 2026-11-18
 

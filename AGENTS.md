@@ -35,7 +35,7 @@ RUSTFLAGS="-C target-cpu=native" MEM_TEST_MODEL=/path/embeddinggemma-300M-Q8_0.g
 1. `src/cli.rs`: the `Cmd` variant with doc comments (they become `--help`); add value options to `VALUE_OPTS`.
 2. `src/commands.rs`: the `run_cmd` arm; add it to the `locked` list in `run` if it writes.
 3. Tests: a unit test next to the logic, a CLI test in `tests/cli.rs`.
-4. Docs: README.md (Korean command reference), SKILL.md if agents should use it, ARCHITECTURE.md, a DECISIONS entry.
+4. Docs: README.md (English command reference), SKILL.md if agents should use it, ARCHITECTURE.md, a DECISIONS entry.
 5. CHANGELOG.md.
 
 ## Style

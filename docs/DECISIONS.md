@@ -216,7 +216,7 @@ redistributed. crates.io publishing is off.
 **Open.** License not chosen yet (needed before the first public release); winget identifier and GitHub owner
 are placeholders.
 
-## D-19 Version 0.0.1; documentation languages — accepted, *owner decision (version)*
+## D-19 Version 0.0.1; documentation languages — accepted, *owner decision (version)* (README language superseded by D-24)
 
 **Decision.** The Rust project starts at 0.0.1 (the Python reference's v5.3 numbering is its own history).
 README.md is in Korean for the owner; SKILL.md, ARCHITECTURE.md and this file are in English for agents (and
@@ -298,3 +298,9 @@ Reproduced on Windows; inherited unchanged from the Python reference.
 step). Ids that were free before get the same number as before, so outputs and the golden snapshot are unchanged;
 the number of a skipped id no longer equals its `rowid_`, which nothing reads. Test:
 `add_after_import_skips_ids_already_taken`.
+
+## D-24 README.md is in English — accepted, *owner decision*
+
+**Decision.** README.md is written in English, like every other document in the repository; it replaces the
+Korean README of D-19. Korean stays in the examples that show Korean handling (a Korean query, particles, short
+words, synonyms such as 위시리스트). The example outputs were re-checked against the current binary.

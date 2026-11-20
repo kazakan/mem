@@ -1,7 +1,7 @@
 # Architecture
 
 For agents changing this code. Read this, then docs/DECISIONS.md (why things are the way they are), then the
-module you touch. The user-facing command reference is README.md (Korean); the agent instructions are SKILL.md.
+module you touch. The user-facing command reference is README.md; the agent instructions are SKILL.md.
 
 ## 1. What mem is, and the constraints that shape it
 
