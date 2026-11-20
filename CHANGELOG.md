@@ -1,14 +1,6 @@
 # Changelog
 
-## Unreleased
-
-- Fix: after `import`, `add` could fail on every try with `UNIQUE constraint failed: memory.id` when an imported
-  note already had the next id; the new id now skips numbers in use (D-23).
-- README.md is now in English (D-24).
-- License: MIT. Published as https://github.com/kazakan/mem; winget identifier `kazakan.mem` (D-25).
-- Release archives include `LICENSE` and `THIRD_PARTY_NOTICES.txt` (third-party license notices).
-
-## 0.0.1 — 2026-11-18
+## 0.0.1 — 2026-11-20
 
 First version of the Rust CLI, ported from the Python `mem` v5.3.
 
@@ -26,8 +18,12 @@ First version of the Rust CLI, ported from the Python `mem` v5.3.
   (`MEM_BLESS=1` to update) (D-22).
 - The same-subject check and `⚠ SAME SUBJECT` treat registered synonyms as one word, so a Korean title for an
   existing English subject is held for supersede / keep-both (D-21).
-- Packaging: GitHub Actions CI and tag-driven release builds (Windows x64/arm64, Linux musl, macOS),
-  winget manifest templates.
+- A new note's id skips numbers that imported notes already use, so `add` after `import` no longer fails with
+  `UNIQUE constraint failed: memory.id` (D-23).
+- License: MIT. README.md is in English (D-24).
+- Packaging: GitHub Actions CI and release builds for `vX.Y.Z` tags on main (Windows x64/arm64, Linux musl,
+  macOS); every archive carries `LICENSE` and `THIRD_PARTY_NOTICES.txt`. Published as
+  https://github.com/kazakan/mem, winget package `kazakan.mem` (D-25).
 
 Known issue, not changed yet: one-syllable words (찜, 팀, C) and some two-syllable Korean words that end in
 a particle-like syllable (평가, 회의) are dropped from queries and titles; some English stopwords carry
