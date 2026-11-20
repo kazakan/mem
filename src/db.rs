@@ -184,6 +184,8 @@ mod tests {
         // reopening an up-to-date store with an empty synonym table must not rerun the setup transaction
         let db = connect(&p, false).unwrap();
         db.execute_batch("BEGIN; INSERT INTO synonym VALUES ('a','b'); ROLLBACK;").unwrap();
+        // Windows cannot delete a database file that is still open
+        drop(db);
         std::fs::remove_dir_all(dir).unwrap();
     }
 
