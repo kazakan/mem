@@ -1,0 +1,20 @@
+# cargo-about: third-party notices for the release archives (release.yml, job `notices`).
+# A dependency under a license missing here makes the release fail; add the license only if it is
+# compatible with shipping mem under MIT (docs/DECISIONS.md D-25). For dual-licensed crates the first
+# accepted license in this list is used.
+accepted = ["MIT", "Apache-2.0", "Unlicense", "Zlib", "BSD-2-Clause", "BSD-3-Clause", "ISC", "Unicode-3.0"]
+
+# the release targets; crates only built for other platforms (wasm, UEFI, Android) stay out
+targets = [
+    "x86_64-pc-windows-msvc",
+    "aarch64-pc-windows-msvc",
+    "x86_64-unknown-linux-musl",
+    "x86_64-unknown-linux-gnu",
+    "x86_64-apple-darwin",
+    "aarch64-apple-darwin",
+]
+
+# only code that ends up in the binary; mem itself (publish = false) is covered by LICENSE
+ignore-build-dependencies = true
+ignore-dev-dependencies = true
+private = { ignore = true }

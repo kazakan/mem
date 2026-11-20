@@ -6,6 +6,7 @@
   note already had the next id; the new id now skips numbers in use (D-23).
 - README.md is now in English (D-24).
 - License: MIT. Published as https://github.com/kazakan/mem; winget identifier `kazakan.mem` (D-25).
+- Release archives include `LICENSE` and `THIRD_PARTY_NOTICES.txt` (third-party license notices).
 
 ## 0.0.1 — 2026-11-18
 

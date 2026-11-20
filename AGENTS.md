@@ -15,6 +15,7 @@ predictable**. Read in this order before changing anything:
   snapshot (`MEM_BLESS=1 cargo test --release --test golden`), review the diff of `tests/fixtures/golden.json`,
   and record why in `docs/DECISIONS.md`.
 - Keep the keyword build small and fast; anything heavy goes behind a cargo feature like `embed`.
+- New dependencies must be under a license accepted in `about.toml` (MIT-compatible, D-25), or the release fails.
 - Korean and English are first-class; language rules live in `src/text.rs`. Other languages: add switchable rules.
 - Never delete notes; status changes only (superseded / retired).
 - Known open issue: short words (D-14). Don't fix it on the side — it changes output; propose and get a decision.

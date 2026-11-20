@@ -27,10 +27,13 @@ releases and winget once.
    page in the Actions tab. The workflow then:
    - checks that the tag equals the `Cargo.toml` version and that the tagged commit is already on `main`
      (a tag on an unmerged commit fails here, before anything is built),
+   - generates `THIRD_PARTY_NOTICES.txt` with cargo-about (`about.toml`, `about.hbs`); a dependency under a
+     license not accepted in `about.toml` stops the release here,
    - builds `mem-<version>-<target>.zip|tar.gz` for Windows x64/arm64 (static CRT), Linux x64 (musl,
-     fully static), macOS x64/arm64,
+     fully static), macOS x64/arm64, each with `LICENSE` and `THIRD_PARTY_NOTICES.txt`,
    - tries the optional `mem-embed-*` builds (llama.cpp inside; failures do not block),
-   - publishes a GitHub release with all archives and `SHA256SUMS` (0.x tags are marked pre-release),
+   - publishes a GitHub release with all archives, `THIRD_PARTY_NOTICES.txt` and `SHA256SUMS` (0.x tags are
+     marked pre-release),
    - runs the winget job (below).
 
 ## winget

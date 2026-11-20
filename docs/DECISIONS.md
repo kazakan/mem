@@ -322,3 +322,7 @@ its terms when they download it. No dependency conflicts with MIT.
 
 **Open.** MIT, BSD and Apache licenses ask that their copyright notices travel with binary copies; the release
 archives carry only mem's own `LICENSE` so far. A generated third-party notice file would close that gap.
+*(Resolved: every archive now carries `THIRD_PARTY_NOTICES.txt`, generated at release time by cargo-about from
+`about.toml` and `about.hbs`. The template adds the C/C++ code cargo does not see: llama.cpp/ggml and musl (MIT
+notices) and SQLite (public domain). Generating it per release keeps it in step with `Cargo.lock`; a crate under a
+license not accepted in `about.toml` fails the release instead of shipping unnoticed.)*
