@@ -1,23 +1,19 @@
-# Push a tag like v0.0.1 (matching Cargo.toml) to build every target, attach the archives and SHA256SUMS
+# Push a release tag vX.Y.Z (matching Cargo.toml) to build every target, attach the archives and SHA256SUMS
 # to a GitHub release, and (once the package exists in winget-pkgs and WINGET_TOKEN is set) open the winget
-# update PR. See RELEASING.md.
+# update PR. Nothing else starts this workflow: no branch pushes, no other tags, no manual runs.
+# See RELEASING.md.
 name: release
 
 on:
   push:
-    tags: ["v*"]
-  workflow_dispatch:
-    inputs:
-      tag:
-        description: "existing tag to (re)build, e.g. v0.0.1"
-        required: true
+    tags: ["v[0-9]+.[0-9]+.[0-9]+"]
 
 permissions:
   contents: write
 
 env:
   CARGO_TERM_COLOR: always
-  TAG: ${{ github.event.inputs.tag || github.ref_name }}
+  TAG: ${{ github.ref_name }}
 
 jobs:
   check-version:
@@ -25,12 +21,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ env.TAG }}
+          fetch-depth: 0 # full history, so origin/main is there for the check below
       - name: tag matches Cargo.toml
         shell: bash
         run: |
           v=$(grep -m1 '^version' Cargo.toml | cut -d'"' -f2)
           [ "v$v" = "$TAG" ] || { echo "tag $TAG != Cargo.toml version $v"; exit 1; }
+      - name: tagged commit is on main
+        shell: bash
+        run: |
+          git merge-base --is-ancestor HEAD origin/main ||
+            { echo "tag $TAG points to a commit that is not on main: push main first, then the tag"; exit 1; }
 
   build:
     needs: check-version
@@ -46,8 +47,6 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ env.TAG }}
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
@@ -87,8 +86,6 @@ jobs:
       LLAMA_STATIC_CRT: "1"
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ env.TAG }}
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}

@@ -18,13 +18,17 @@ releases and winget once.
 1. Update `version` in `Cargo.toml` and run `cargo build` so `Cargo.lock` follows.
 2. Add a section to `CHANGELOG.md`.
 3. `cargo fmt --check && cargo clippy --release --all-targets -- -D warnings && cargo test --release`
-4. Commit, then tag and push:
+4. Commit and push `main`, then tag that commit and push the tag:
    ```sh
+   git push origin main
    git tag v0.0.1
    git push origin v0.0.1
    ```
-5. `.github/workflows/release.yml` then:
-   - checks that the tag equals the `Cargo.toml` version,
+5. Only a tag of the form `vX.Y.Z` starts `.github/workflows/release.yml`; branch pushes, other tags
+   (`v1`, `v0.1.0-rc1`, `test`) and manual runs do not. A failed run is retried with *Re-run jobs* on its
+   page in the Actions tab. The workflow then:
+   - checks that the tag equals the `Cargo.toml` version and that the tagged commit is already on `main`
+     (a tag on an unmerged commit fails here, before anything is built),
    - builds `mem-<version>-<target>.zip|tar.gz` for Windows x64/arm64 (static CRT), Linux x64 (musl,
      fully static), macOS x64/arm64,
    - tries the optional `mem-embed-*` builds (llama.cpp inside; failures do not block),
