@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- The Windows x64 embedding build (`mem-embed-*-x86_64-pc-windows-msvc.zip`) links again; it was missing from
+  0.0.1. Releases now fail instead of shipping without an archive (D-26).
+
 ## 0.0.1 — 2026-11-20
 
 First version of the Rust CLI, ported from the Python `mem` v5.3.

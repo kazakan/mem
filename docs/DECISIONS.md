@@ -209,9 +209,10 @@ Running from an unrelated folder creates a store there — `mem where` makes tha
 
 **Decision.** Tag `vX.Y.Z` builds archives for Windows x64/arm64 (static C runtime), Linux x86_64 (musl, static),
 macOS x64/arm64, with README, SKILL.md and CHANGELOG. winget gets the Windows keyword build as a zip with a nested
-portable `mem.exe` and the command alias `mem`; the first submission is a manual PR (the templates in `packaging/winget/`
-with the release's hashes filled in by hand, RELEASING.md), later ones by the release workflow. Embed builds are attached as optional `mem-embed-*` archives, not in winget; the model is never
-redistributed. crates.io publishing is off.
+portable `mem.exe` and the command alias `mem`; the first submission is a manual PR (the templates in
+`packaging/winget/` with the release's hashes filled in by hand, RELEASING.md), later ones by the release workflow.
+Embed builds are attached as `mem-embed-*` archives, not in winget — optional to download, but required to build
+(D-26); the model is never redistributed. crates.io publishing is off.
 
 **Open.** License not chosen yet (needed before the first public release); winget identifier and GitHub owner
 are placeholders. *(Resolved by D-25.)*
@@ -326,3 +327,22 @@ archives carry only mem's own `LICENSE` so far. A generated third-party notice f
 `about.toml` and `about.hbs`. The template adds the C/C++ code cargo does not see: llama.cpp/ggml and musl (MIT
 notices) and SQLite (public domain). Generating it per release keeps it in step with `Cargo.lock`; a crate under a
 license not accepted in `about.toml` fails the release instead of shipping unnoticed.)*
+
+## D-26 Every release build must succeed, the embed builds included — accepted, *owner decision*
+
+**Context.** The release workflow ran the `mem-embed-*` builds with `continue-on-error`, so a failure would not hold
+back the keyword release. In v0.0.1 the Windows embed build failed at link time (21 unresolved `__imp_*` CRT
+symbols): mem links the C runtime statically (`+crt-static`), but llama.cpp was compiled for the DLL runtime.
+`LLAMA_STATIC_CRT=1` only puts `/MT` into the compiler flags, and llama.cpp's CMake policy level lets
+`CMAKE_MSVC_RUNTIME_LIBRARY` (default `MultiThreadedDLL`) decide instead. The run still finished green, the
+release went out without the Windows embed archive, and CI had never built the embed feature on Windows.
+
+**Decision.** A release ships every archive it documents or fails: `build-embed` is no longer
+`continue-on-error`, and the release job needs all builds. `.cargo/config.toml` sets `LLAMA_STATIC_CRT=1` and
+`CMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded` in `[env]` (llama-cpp-sys-2 passes `CMAKE_*` variables to CMake;
+both are ignored outside MSVC), so local, CI and release builds agree. CI builds and tests the embed feature on
+Windows as well as Linux.
+
+**Consequences.** A broken embed build now blocks the keyword release too; the fix is to repair it, not to skip
+it. v0.0.1 keeps its published archives (the winget submission pins their hashes); the Windows embed archive
+comes with the next release.

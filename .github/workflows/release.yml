@@ -85,11 +85,11 @@ jobs:
           name: mem-${{ matrix.target }}
           path: dist/*.${{ matrix.ext }}
 
-  # Optional builds with --features embed (EmbeddingGemma through llama.cpp). The model is not shipped:
-  # users put model.gguf next to the store or set MEM_MODEL. A failure here does not block the release.
+  # Builds with --features embed (EmbeddingGemma through llama.cpp). The model is not shipped: users put
+  # model.gguf next to the store or set MEM_MODEL. Like the keyword builds, a failure here stops the release.
+  # The Windows C runtime settings for llama.cpp come from .cargo/config.toml.
   build-embed:
     needs: [check-version, notices]
-    continue-on-error: true
     strategy:
       fail-fast: false
       matrix:
@@ -99,8 +99,6 @@ jobs:
           - { target: x86_64-pc-windows-msvc,   os: windows-latest, ext: zip,    cpu: x86-64-v3 }
           - { target: aarch64-apple-darwin,     os: macos-latest,   ext: tar.gz, cpu: "" }
     runs-on: ${{ matrix.os }}
-    env:
-      LLAMA_STATIC_CRT: "1"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
@@ -137,7 +135,6 @@ jobs:
 
   release:
     needs: [build, build-embed]
-    if: ${{ !cancelled() && needs.build.result == 'success' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v4

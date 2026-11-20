@@ -43,7 +43,8 @@ RUSTFLAGS="-C target-cpu=native" cargo build --release --features embed       # 
 RUSTFLAGS="-C target-cpu=x86-64-v3" cargo build --release --features embed    # any AVX2 machine
 ```
 
-Embedding build on Windows: also set `LLAMA_STATIC_CRT=1` (to match the static CRT in `.cargo/config.toml`).
+On Windows the embedding build links llama.cpp against the same static C runtime as mem; the settings for that
+are in `.cargo/config.toml`, so nothing extra is needed.
 
 ## Where the store lives
 

@@ -31,7 +31,8 @@ releases and winget once.
      license not accepted in `about.toml` stops the release here,
    - builds `mem-<version>-<target>.zip|tar.gz` for Windows x64/arm64 (static CRT), Linux x64 (musl,
      fully static), macOS x64/arm64, each with `LICENSE` and `THIRD_PARTY_NOTICES.txt`,
-   - tries the optional `mem-embed-*` builds (llama.cpp inside; failures do not block),
+   - builds the `mem-embed-*` archives (llama.cpp inside) for Linux x64, Windows x64 and macOS arm64; like the
+     keyword builds, a failure stops the release (CI builds the embed feature on Linux and Windows first),
    - publishes a GitHub release with all archives, `THIRD_PARTY_NOTICES.txt` and `SHA256SUMS` (0.x tags are
      marked pre-release),
    - runs the winget job (below).
@@ -113,8 +114,8 @@ The winget package is the keyword-only build (about 5 MB, starts in milliseconds
 `mem-embed-*` archive from the release page plus the EmbeddingGemma model
 (`embeddinggemma-300M-Q8_0.gguf`, downloaded separately under its own license, not redistributed here):
 put it next to the store as `.mem/model.gguf` or set `MEM_MODEL`, then run `mem index` once.
-Building it yourself: `cargo build --release --features embed` (needs CMake and a C++ compiler;
-on Windows also set `LLAMA_STATIC_CRT=1`). See docs/ARCHITECTURE.md, "Embeddings".
+Building it yourself: `cargo build --release --features embed` (needs CMake and a C++ compiler; the Windows
+C runtime settings come from `.cargo/config.toml`). See docs/ARCHITECTURE.md, "Embeddings".
 
 ## Not set up
 

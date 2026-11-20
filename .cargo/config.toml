@@ -1,8 +1,15 @@
 # Windows release binaries link the C runtime statically, so mem.exe runs on a clean machine
 # without the Visual C++ redistributable (winget installs it as a single portable exe).
-# For `--features embed` on Windows also set LLAMA_STATIC_CRT=1 so llama.cpp uses the same runtime.
 [target.x86_64-pc-windows-msvc]
 rustflags = ["-C", "target-feature=+crt-static"]
 
 [target.aarch64-pc-windows-msvc]
 rustflags = ["-C", "target-feature=+crt-static"]
+
+# `--features embed` on Windows: llama.cpp (built by CMake in llama-cpp-sys-2) must use the same static
+# runtime, or linking fails on __imp_* symbols. LLAMA_STATIC_CRT only sets /MT in the compiler flags; CMake's
+# own runtime setting (CMAKE_MSVC_RUNTIME_LIBRARY, default MultiThreadedDLL) overrides it, and
+# llama-cpp-sys-2 passes every CMAKE_* variable on to CMake. Both are ignored when not building with MSVC.
+[env]
+LLAMA_STATIC_CRT = "1"
+CMAKE_MSVC_RUNTIME_LIBRARY = "MultiThreaded"

@@ -34,15 +34,21 @@ jobs:
       - run: cargo test --release --locked
 
   # The embedding build compiles llama.cpp (several minutes). Embedding tests skip without MEM_TEST_MODEL;
-  # this job checks that the feature builds and the keyword path still passes with it on.
+  # this job checks that the feature builds and links, and that the keyword path still passes with it on.
+  # Windows is here because its static C runtime only fails at link time (release v0.0.1 lost its archive).
   embed:
-    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, windows-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: clippy
       - uses: Swatinem/rust-cache@v2
-      - run: sudo apt-get update && sudo apt-get install -y cmake clang
+      - if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y cmake clang
       - run: cargo clippy --release --features embed --all-targets -- -D warnings
       - run: cargo test --release --locked --features embed
