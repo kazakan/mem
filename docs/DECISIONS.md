@@ -286,3 +286,15 @@ snapshot of the verified behavior; after an intended output change it is re-gene
 a change is right is judged from its diff and a decision entry. Stores written by the Python version open
 unchanged (same schema). Code comments that cite Python behavior (string slicing, argparse, KeyError text)
 explain where the output format came from; they are not a requirement to keep Python around.
+
+## D-23 A new note's id skips numbers that imported notes already use — accepted
+
+**Context.** A new id is `<project[:2]>-<kind[:4]>-<max(rowid_) + 1>`. `import` keeps each note's id but gives it
+the next local `rowid_`, so an imported `de-fact-002` can sit at rowid 1. The next `add` of a demo fact then built
+`de-fact-002` again and failed with `UNIQUE constraint failed: memory.id`, and every retry built the same id.
+Reproduced on Windows; inherited unchanged from the Python reference.
+
+**Decision.** `next_id` starts at `max(rowid_) + 1` and counts up until the id is free (one indexed lookup per
+step). Ids that were free before get the same number as before, so outputs and the golden snapshot are unchanged;
+the number of a skipped id no longer equals its `rowid_`, which nothing reads. Test:
+`add_after_import_skips_ids_already_taken`.

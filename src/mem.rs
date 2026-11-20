@@ -91,8 +91,15 @@ impl Mem {
     }
 
     pub(crate) fn next_id(&self, project: &str, kind: &str) -> R<String> {
-        let n: i64 = self.db.query_row("SELECT coalesce(max(rowid_), 0) + 1 FROM memory", [], |r| r.get(0))?;
-        Ok(format!("{}-{}-{:03}", cut(project, 2), cut(kind, 4), n))
+        let mut n: i64 = self.db.query_row("SELECT coalesce(max(rowid_), 0) + 1 FROM memory", [], |r| r.get(0))?;
+        // imported notes keep their own ids, so the number after the last rowid can already be taken
+        loop {
+            let id = format!("{}-{}-{:03}", cut(project, 2), cut(kind, 4), n);
+            if self.db.query_row("SELECT 1 FROM memory WHERE id = ?", [&id], |_| Ok(())).optional()?.is_none() {
+                return Ok(id);
+            }
+            n += 1;
+        }
     }
 
     /// vals: id, project, kind, date, title, summary, body, tags, status, superseded_by, source

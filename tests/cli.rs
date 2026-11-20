@@ -274,6 +274,19 @@ fn import_keeps_ids_and_dates() {
 }
 
 #[test]
+fn add_after_import_skips_ids_already_taken() {
+    // imported notes keep their ids but get new rowids, so the next number can already be in use
+    let s = Store::new();
+    let f = s.write(
+        "imp.jsonl",
+        r#"{"id": "de-fact-002", "project": "demo", "kind": "fact", "date": "2025-01-02", "title": "Imported note", "summary": "from another store"}"#,
+    );
+    assert_eq!(s.run(&["import", &f]).out.trim(), "imported");
+    assert_eq!(s.add("fact", "Coupons batch chunk size", "1000 rows per chunk", &[]), "de-fact-003");
+    assert_eq!(s.add("fact", "Refund retry limit", "3 retries", &[]), "de-fact-004");
+}
+
+#[test]
 fn values_starting_with_a_dash_and_argument_errors() {
     let s = Store::new();
     let id = s.add(

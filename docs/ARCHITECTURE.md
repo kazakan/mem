@@ -57,7 +57,8 @@ memory_vec USING vec0(embedding bit[768])      -- binary-quantized, for the firs
 memory_emb(rowid_ INTEGER PRIMARY KEY, e BLOB)  -- int8 vector, for the rerank
 ```
 
-- `id` = `<project[:2]>-<kind[:4]>-<rowid_ zero-padded to 3>`, e.g. `sh-deci-003`. `rowid_` = max + 1.
+- `id` = `<project[:2]>-<kind[:4]>-<rowid_ zero-padded to 3>`, e.g. `sh-deci-003`. `rowid_` = max + 1. Imported
+  notes keep their ids, so if that id is taken the number goes up until it is free (D-23).
 - `fw3` is **contentless** (`content=''`): it stores only the index, rowid = `memory.rowid_`. Rows are inserted
   with the note and never updated in place; `edit` deletes and re-inserts the FTS row with the old values
   (contentless tables need the old values to delete). Keep `insert` and `edit` in sync with this rule.
