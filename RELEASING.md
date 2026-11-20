@@ -54,37 +54,40 @@ newest in winget-pkgs on 2026-11-20; they pass `winget validate`.
 **First version — by hand** (winget-pkgs only accepts new packages through a reviewed PR):
 
 1. Release `v0.0.1` as above and wait until the release workflow has published it.
-2. Fill in the templates from the release (URLs, SHA-256 from its `SHA256SUMS`, date) and validate them:
-   ```powershell
-   pwsh packaging/winget/prepare.ps1 -Version 0.0.1
-   ```
-   This writes `target/winget/manifests/k/kazakan/mem/0.0.1/` and runs `winget validate --manifest` on it; it
-   must end with "Manifest validation succeeded." and no warnings.
-3. Install from the local manifest and check it (the first command once, in an administrator shell):
-   ```powershell
-   winget settings --enable LocalManifestFiles
-   winget install --manifest target\winget\manifests\k\kazakan\mem\0.0.1
-   mem --version             # mem 0.0.1, in a new terminal
-   winget uninstall kazakan.mem
-   ```
-   For a clean machine, run `.\Tools\SandboxTest.ps1 <manifest folder>` from a winget-pkgs checkout instead
-   (Windows Sandbox).
-4. Open the PR — one package version per PR, manifest files only. From the folder that holds `mem`:
+2. Check out the fork (sparse) next to `mem` and copy the templates into the package's folder:
    ```powershell
    git clone --filter=blob:none --no-checkout https://github.com/kazakan/winget-pkgs.git
    cd winget-pkgs
    git sparse-checkout set manifests/k/kazakan
    git checkout
    git switch -c kazakan.mem-0.0.1
-   New-Item -ItemType Directory -Force manifests\k\kazakan | Out-Null
-   Copy-Item -Recurse ..\mem\target\winget\manifests\k\kazakan\mem manifests\k\kazakan\
-   git add manifests/k/kazakan/mem/0.0.1
+   $m = 'manifests\k\kazakan\mem\0.0.1'
+   New-Item -ItemType Directory -Force $m | Out-Null
+   Copy-Item ..\mem\packaging\winget\kazakan.mem*.yaml $m
+   ```
+3. In `$m\kazakan.mem.installer.yaml` replace the two zero `InstallerSha256` values with the x64 and arm64 zip
+   lines of the release's checksums, and set `ReleaseDate`. Version and URLs already say 0.0.1.
+   ```powershell
+   gh release download v0.0.1 -R kazakan/mem -p SHA256SUMS -O -
+   winget validate --manifest $m     # must say "Manifest validation succeeded." with no warnings
+   ```
+4. Install from the local manifest and check it (the first command once, in an administrator shell):
+   ```powershell
+   winget settings --enable LocalManifestFiles
+   winget install --manifest $m
+   mem --version             # mem 0.0.1, in a new terminal
+   winget uninstall kazakan.mem
+   ```
+   For a clean machine, run `.\Tools\SandboxTest.ps1 $m` in this checkout instead (Windows Sandbox).
+5. Open the PR — one package version per PR, manifest files only:
+   ```powershell
+   git add $m
    git commit -m "New package: kazakan.mem version 0.0.1"
    git push -u origin kazakan.mem-0.0.1
    gh pr create --repo microsoft/winget-pkgs --base master --head kazakan:kazakan.mem-0.0.1 --web
    ```
    `--web` opens the PR form with winget-pkgs' checklist; fill it in and create the PR.
-5. Watch the PR. The validation pipeline installs the package and scans it; then a moderator reviews it. Labels:
+6. Watch the PR. The validation pipeline installs the package and scans it; then a moderator reviews it. Labels:
    `Azure-Pipeline-Passed` (waiting for approval), `Needs-Author-Feedback` (answer within 10 days or the bot
    closes the PR), `Validation-Completed` (will be merged), `Blocking-Issue` (cannot be approved). On a failure
    open the "Details" link of the failed check. mem.exe is unsigned, so an antivirus false positive is possible
@@ -93,8 +96,9 @@ newest in winget-pkgs on 2026-11-20; they pass `winget validate`.
 **Later versions — automatic**: create a classic GitHub token with `public_repo` scope (fine-grained tokens do not
 work) and save it as the repository secret `WINGET_TOKEN`. For each release tag the `winget` job
 (winget-releaser, pinned to a commit of v2) writes the new version's manifests from the release and opens the
-update PR from the fork. Without the secret the job only prints that it skipped. If it fails, run step 2-4 above
-with the new version.
+update PR from the fork. Without the secret the job only prints that it skipped. If it fails, update by hand with
+winget-create, which starts from the manifest already in winget-pkgs and computes the hashes:
+`wingetcreate update kazakan.mem --version X.Y.Z --urls <x64 zip URL> <arm64 zip URL> --submit`.
 
 Users then install with:
 

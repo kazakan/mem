@@ -209,8 +209,8 @@ Running from an unrelated folder creates a store there — `mem where` makes tha
 
 **Decision.** Tag `vX.Y.Z` builds archives for Windows x64/arm64 (static C runtime), Linux x86_64 (musl, static),
 macOS x64/arm64, with README, SKILL.md and CHANGELOG. winget gets the Windows keyword build as a zip with a nested
-portable `mem.exe` and the command alias `mem`; the first submission is a manual PR (manifests filled and validated
-by `packaging/winget/prepare.ps1`, RELEASING.md), later ones by the release workflow. Embed builds are attached as optional `mem-embed-*` archives, not in winget; the model is never
+portable `mem.exe` and the command alias `mem`; the first submission is a manual PR (the templates in `packaging/winget/`
+with the release's hashes filled in by hand, RELEASING.md), later ones by the release workflow. Embed builds are attached as optional `mem-embed-*` archives, not in winget; the model is never
 redistributed. crates.io publishing is off.
 
 **Open.** License not chosen yet (needed before the first public release); winget identifier and GitHub owner
