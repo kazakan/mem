@@ -163,7 +163,8 @@ jobs:
       WINGET_TOKEN: ${{ secrets.WINGET_TOKEN }}
     steps:
       - if: env.WINGET_TOKEN != ''
-        uses: vedantmgoyal9/winget-releaser@main
+        # pinned to a commit: this step receives WINGET_TOKEN, so a moved branch or tag must not change it
+        uses: vedantmgoyal9/winget-releaser@b7370d4d152efdce803a26cc6ca9eee58cb2ad54 # v2
         with:
           identifier: kazakan.mem
           release-tag: ${{ env.TAG }}

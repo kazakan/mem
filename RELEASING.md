@@ -38,22 +38,63 @@ releases and winget once.
 
 ## winget
 
+Follows Microsoft's "Submit your manifest to the repository" guide
+(https://learn.microsoft.com/en-us/windows/package-manager/package/repository). The templates in
+`packaging/winget/` are a multi-file manifest (version, installer, defaultLocale en-US) on schema 1.28.0, the
+newest in winget-pkgs on 2026-11-20; they pass `winget validate`.
+
+**Once**
+
+- Fork `microsoft/winget-pkgs` to the `kazakan` account: `gh repo fork microsoft/winget-pkgs --clone=false`.
+  The PRs come from this fork, and the automatic updates below push their branches to it.
+- Git 2.37 or newer (sparse checkout).
+- On the first PR the Microsoft CLA bot asks you to sign the Contributor License Agreement; the PR cannot be
+  merged before that, even when validation passed.
+
 **First version — by hand** (winget-pkgs only accepts new packages through a reviewed PR):
 
-```powershell
-winget install Microsoft.WingetCreate
-wingetcreate new https://github.com/kazakan/mem/releases/download/v0.0.1/mem-0.0.1-x86_64-pc-windows-msvc.zip `
-                 https://github.com/kazakan/mem/releases/download/v0.0.1/mem-0.0.1-aarch64-pc-windows-msvc.zip
-```
+1. Release `v0.0.1` as above and wait until the release workflow has published it.
+2. Fill in the templates from the release (URLs, SHA-256 from its `SHA256SUMS`, date) and validate them:
+   ```powershell
+   pwsh packaging/winget/prepare.ps1 -Version 0.0.1
+   ```
+   This writes `target/winget/manifests/k/kazakan/mem/0.0.1/` and runs `winget validate --manifest` on it; it
+   must end with "Manifest validation succeeded." and no warnings.
+3. Install from the local manifest and check it (the first command once, in an administrator shell):
+   ```powershell
+   winget settings --enable LocalManifestFiles
+   winget install --manifest target\winget\manifests\k\kazakan\mem\0.0.1
+   mem --version             # mem 0.0.1, in a new terminal
+   winget uninstall kazakan.mem
+   ```
+   For a clean machine, run `.\Tools\SandboxTest.ps1 <manifest folder>` from a winget-pkgs checkout instead
+   (Windows Sandbox).
+4. Open the PR — one package version per PR, manifest files only. From the folder that holds `mem`:
+   ```powershell
+   git clone --filter=blob:none --no-checkout https://github.com/kazakan/winget-pkgs.git
+   cd winget-pkgs
+   git sparse-checkout set manifests/k/kazakan
+   git checkout
+   git switch -c kazakan.mem-0.0.1
+   New-Item -ItemType Directory -Force manifests\k\kazakan | Out-Null
+   Copy-Item -Recurse ..\mem\target\winget\manifests\k\kazakan\mem manifests\k\kazakan\
+   git add manifests/k/kazakan/mem/0.0.1
+   git commit -m "New package: kazakan.mem version 0.0.1"
+   git push -u origin kazakan.mem-0.0.1
+   gh pr create --repo microsoft/winget-pkgs --base master --head kazakan:kazakan.mem-0.0.1 --web
+   ```
+   `--web` opens the PR form with winget-pkgs' checklist; fill it in and create the PR.
+5. Watch the PR. The validation pipeline installs the package and scans it; then a moderator reviews it. Labels:
+   `Azure-Pipeline-Passed` (waiting for approval), `Needs-Author-Feedback` (answer within 10 days or the bot
+   closes the PR), `Validation-Completed` (will be merged), `Blocking-Issue` (cannot be approved). On a failure
+   open the "Details" link of the failed check. mem.exe is unsigned, so an antivirus false positive is possible
+   (`Binary-Validation-Error`); report it at https://www.microsoft.com/wdsi/filesubmission.
 
-Answer the prompts with the values in `packaging/winget/kazakan.mem*.yaml` (identifier `kazakan.mem`, installer
-type zip, nested portable `mem.exe`, command alias `mem`, license MIT), let it validate, and submit. A Microsoft
-reviewer and the validation bots check the PR; it usually takes a few days.
-
-**Later versions — automatic**: fork `microsoft/winget-pkgs` to the `kazakan` account (the action pushes its
-branch there), create a classic GitHub token with `public_repo` scope and save it as the repository secret
-`WINGET_TOKEN`. The `winget` job then opens the update PR for each tag. Without the secret the job only prints
-that it skipped.
+**Later versions — automatic**: create a classic GitHub token with `public_repo` scope (fine-grained tokens do not
+work) and save it as the repository secret `WINGET_TOKEN`. For each release tag the `winget` job
+(winget-releaser, pinned to a commit of v2) writes the new version's manifests from the release and opens the
+update PR from the fork. Without the secret the job only prints that it skipped. If it fails, run step 2-4 above
+with the new version.
 
 Users then install with:
 
