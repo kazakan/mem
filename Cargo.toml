@@ -7,8 +7,8 @@ description = "Shared project memory for AI agents: decisions, conventions, gotc
 readme = "README.md"
 keywords = ["memory", "agents", "sqlite", "fts5", "cli"]
 categories = ["command-line-utilities"]
-# license = "MIT OR Apache-2.0"   # choose before the first public release (winget needs one)
-# repository = "https://github.com/OWNER/mem"
+license = "MIT"
+repository = "https://github.com/kazakan/mem"
 publish = false
 
 [[bin]]

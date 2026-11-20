@@ -3,15 +3,13 @@
 Nothing here has been published yet. Version 0.0.1 is the first one; the steps below set up GitHub
 releases and winget once.
 
-## One-time setup
+## One-time setup (done)
 
-1. **Pick a license** and add `LICENSE` (for example MIT, or `MIT OR Apache-2.0` with both files).
-   Set `license = "..."` and `repository = "https://github.com/OWNER/mem"` in `Cargo.toml`.
-   winget requires a license field; the release archives include `LICENSE` when it exists.
-2. **Push the repository to GitHub** (`OWNER/mem`). CI (`.github/workflows/ci.yml`) runs fmt, clippy and
-   the tests on Windows, Linux and macOS, plus an embed build on Linux.
-3. **Choose the winget identifier**, e.g. `YourName.Mem`. Check that it, and the command alias `mem`,
-   are not taken: `winget search mem`, and look in https://github.com/microsoft/winget-pkgs/tree/master/manifests.
+1. **License**: MIT (`LICENSE`, `license = "MIT"` in `Cargo.toml`). The release archives include `LICENSE`.
+2. **Repository**: https://github.com/kazakan/mem. CI (`.github/workflows/ci.yml`) runs fmt, clippy and the
+   tests on Windows, Linux and macOS, plus an embed build on Linux.
+3. **winget identifier**: `kazakan.mem`. On 2026-11-20 neither it nor a package with the command `mem` was in
+   the winget source (`winget search --id kazakan.mem`, `winget search --command mem`).
 
 ## Every release
 
@@ -41,22 +39,23 @@ releases and winget once.
 
 ```powershell
 winget install Microsoft.WingetCreate
-wingetcreate new https://github.com/OWNER/mem/releases/download/v0.0.1/mem-0.0.1-x86_64-pc-windows-msvc.zip `
-                 https://github.com/OWNER/mem/releases/download/v0.0.1/mem-0.0.1-aarch64-pc-windows-msvc.zip
+wingetcreate new https://github.com/kazakan/mem/releases/download/v0.0.1/mem-0.0.1-x86_64-pc-windows-msvc.zip `
+                 https://github.com/kazakan/mem/releases/download/v0.0.1/mem-0.0.1-aarch64-pc-windows-msvc.zip
 ```
 
-Answer the prompts with the values in `packaging/winget/*.yaml` (installer type zip, nested portable
-`mem.exe`, command alias `mem`), let it validate, and submit. A Microsoft reviewer and the validation bots
-check the PR; it usually takes a few days.
+Answer the prompts with the values in `packaging/winget/kazakan.mem*.yaml` (identifier `kazakan.mem`, installer
+type zip, nested portable `mem.exe`, command alias `mem`, license MIT), let it validate, and submit. A Microsoft
+reviewer and the validation bots check the PR; it usually takes a few days.
 
-**Later versions — automatic**: create a classic GitHub token with `public_repo` scope, save it as the
-repository secret `WINGET_TOKEN`, and set the repository variable `WINGET_ID` to the identifier. The
-`winget` job then opens the update PR for each tag. Without them the job only prints that it skipped.
+**Later versions — automatic**: fork `microsoft/winget-pkgs` to the `kazakan` account (the action pushes its
+branch there), create a classic GitHub token with `public_repo` scope and save it as the repository secret
+`WINGET_TOKEN`. The `winget` job then opens the update PR for each tag. Without the secret the job only prints
+that it skipped.
 
 Users then install with:
 
 ```powershell
-winget install YourName.Mem
+winget install kazakan.mem
 mem where      # shows which store a call in this folder would use
 ```
 

@@ -141,14 +141,13 @@ jobs:
     runs-on: windows-latest
     env:
       WINGET_TOKEN: ${{ secrets.WINGET_TOKEN }}
-      WINGET_ID: ${{ vars.WINGET_ID }}
     steps:
-      - if: env.WINGET_TOKEN != '' && env.WINGET_ID != ''
+      - if: env.WINGET_TOKEN != ''
         uses: vedantmgoyal9/winget-releaser@main
         with:
-          identifier: ${{ env.WINGET_ID }}
+          identifier: kazakan.mem
           release-tag: ${{ env.TAG }}
           installers-regex: '^mem-[0-9.]+-(x86_64|aarch64)-pc-windows-msvc\.zip$'
           token: ${{ env.WINGET_TOKEN }}
-      - if: env.WINGET_TOKEN == '' || env.WINGET_ID == ''
-        run: echo "winget step skipped (set secret WINGET_TOKEN and variable WINGET_ID, see RELEASING.md)"
+      - if: env.WINGET_TOKEN == ''
+        run: echo "winget step skipped (set secret WINGET_TOKEN, see RELEASING.md)"

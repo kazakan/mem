@@ -19,7 +19,7 @@ v5.3, after which the Python version was retired (D-22).
 ### winget (Windows, once published)
 
 ```powershell
-winget install <Publisher>.Mem      # the identifier is chosen at the first release (RELEASING.md)
+winget install kazakan.mem
 mem where
 ```
 
@@ -324,4 +324,5 @@ Agents changing this code should read [AGENTS.md](AGENTS.md) first. Releasing: [
 
 ## License
 
-Not chosen yet (it must be decided before the first public release, see RELEASING.md).
+MIT, see [LICENSE](LICENSE). The optional EmbeddingGemma model is not part of mem; it is downloaded separately
+under its own terms.

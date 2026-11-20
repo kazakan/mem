@@ -214,7 +214,7 @@ release workflow. Embed builds are attached as optional `mem-embed-*` archives, 
 redistributed. crates.io publishing is off.
 
 **Open.** License not chosen yet (needed before the first public release); winget identifier and GitHub owner
-are placeholders.
+are placeholders. *(Resolved by D-25.)*
 
 ## D-19 Version 0.0.1; documentation languages — accepted, *owner decision (version)* (README language superseded by D-24)
 
@@ -304,3 +304,21 @@ the number of a skipped id no longer equals its `rowid_`, which nothing reads. T
 **Decision.** README.md is written in English, like every other document in the repository; it replaces the
 Korean README of D-19. Korean stays in the examples that show Korean handling (a Korean query, particles, short
 words, synonyms such as 위시리스트). The example outputs were re-checked against the current binary.
+
+## D-25 MIT license; published as kazakan/mem and winget `kazakan.mem` — accepted, *owner decision*
+
+**Decision.** mem is MIT licensed (`LICENSE`, `Cargo.toml`). The repository is https://github.com/kazakan/mem and
+the winget package identifier is `kazakan.mem` (free in the winget source on 2026-11-20, as was the command `mem`);
+the release workflow names it directly instead of reading a repository variable.
+
+**Dependency check (2026-11-20, `cargo tree -e normal,build --target all`, with and without `embed`).** Everything
+that ends up in the binaries is permissive: Rust crates under MIT, Apache-2.0, MIT/Apache-2.0, Unlicense/MIT or
+Zlib (foldhash); SQLite (bundled, public domain); sqlite-vec (MIT/Apache-2.0) and llama.cpp/ggml (MIT, its vendored
+code MIT, BSD-2-Clause or public domain) in the embed build only. `r-efi` offers LGPL only as one of three choices
+and is not built for our targets. Build-only tools (bindgen BSD-3-Clause, clang-sys Apache-2.0, libloading ISC,
+proc-macros incl. unicode-ident's Unicode-3.0) are not shipped. Static runtimes are allowed: the MSVC CRT, musl
+(MIT) and libstdc++ (GCC Runtime Library Exception). The EmbeddingGemma model is never redistributed; users accept
+its terms when they download it. No dependency conflicts with MIT.
+
+**Open.** MIT, BSD and Apache licenses ask that their copyright notices travel with binary copies; the release
+archives carry only mem's own `LICENSE` so far. A generated third-party notice file would close that gap.
